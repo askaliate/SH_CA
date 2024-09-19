@@ -123,7 +123,7 @@ The solution is designed with a modular architecture to separate concerns, impro
   - Uses Microsoft Identity Client (MSAL) to acquire tokens.
   - Handles exceptions related to token acquisition and logs errors.
 
-### Project: SHCA.Functions.Order.Services
+### Project: SHCA.Functions.Order.Services - NOT Production ready, included for architecture flow
 
 #### Class: TokenService
 - **Purpose**: Handles the acquisition of access tokens from Azure AD.
