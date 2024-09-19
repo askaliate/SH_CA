@@ -1,3 +1,5 @@
+using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -22,20 +24,43 @@ namespace SHCA.App.OrderProcessing.Monitor.Process
         public async Task<string?> FetchMedicalEquipmentOrders()
         {
             string ordersApiUrl = "https://orders-api.com/orders";
-            string token = await tokenHandler.GetTokenAsync();
+            string token;
+
+            try
+            {
+                token = await tokenHandler.GetTokenAsync();
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, "Failed to retrieve token.");
+                return null;
+            }
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var response = await httpClient.GetAsync(ordersApiUrl);
+            try
+            {
+                var response = await httpClient.GetAsync(ordersApiUrl);
 
-            if (response.IsSuccessStatusCode)
-            {
-                log.LogInformation("Orders fetched successfully.");
-                return await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    log.LogInformation("Orders fetched successfully.");
+                    return await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    log.LogError($"Failed to fetch orders from API. Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase}");
+                    return null;
+                }
             }
-            else
+            catch (HttpRequestException ex)
             {
-                log.LogError("Failed to fetch orders from API.");
+                log.LogError(ex, "HTTP request error while fetching orders.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, "Unexpected error while fetching orders.");
                 return null;
             }
         }

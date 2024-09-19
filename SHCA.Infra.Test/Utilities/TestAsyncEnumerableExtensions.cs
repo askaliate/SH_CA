@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 
-namespace SHCA.API.Test.Utilities
+namespace SHCA.Infra.Test.Utilities
 {
     public static class TestAsyncEnumerableExtensions
     {

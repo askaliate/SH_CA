@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -25,20 +26,42 @@ namespace SHCA.App.OrderProcessing.Monitor.Process
         public async Task SendAlertAndUpdateOrder(Order order)
         {
             string updateApiUrl = "https://update-api.com/update";
-            string token = await tokenHandler.GetTokenAsync();
+            string token;
+
+            try
+            {
+                token = await tokenHandler.GetTokenAsync();
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, "Failed to retrieve token.");
+                return;
+            }
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var content = new StringContent(JsonConvert.SerializeObject(order), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await httpClient.PostAsync(updateApiUrl, content);
 
-            if (response != null && response.IsSuccessStatusCode)
+            try
             {
-                log.LogInformation($"Order {order.OrderId} updated successfully.");
+                HttpResponseMessage response = await httpClient.PostAsync(updateApiUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    log.LogInformation($"Order {order.OrderId} updated successfully.");
+                }
+                else
+                {
+                    log.LogError($"Failed to update order: Order {order.OrderId}. Status Code: {response.StatusCode}, Reason: {response.ReasonPhrase}");
+                }
             }
-            else
+            catch (HttpRequestException ex)
             {
-                log.LogError($"Failed to update order: Order {order.OrderId}.");
+                log.LogError(ex, $"HTTP request error while updating order: Order {order.OrderId}");
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, $"Unexpected error while updating order: Order {order.OrderId}");
             }
         }
     }

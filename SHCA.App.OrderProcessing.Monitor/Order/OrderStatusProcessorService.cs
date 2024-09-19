@@ -1,17 +1,6 @@
-using Microsoft.Identity.Client;
-using SHCA.Core.Interface;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using SHCA.Domain.Entities;
-using Newtonsoft.Json;
-using SHCA.Infra.Repositories;
-using SHCA.App.OrderProcessing.Monitor.Auth;
 using SHCA.App.OrderProcessing.Monitor.Interfaces;
 
 namespace SHCA.App.OrderProcessing.Monitor.Process
@@ -20,26 +9,43 @@ namespace SHCA.App.OrderProcessing.Monitor.Process
     {
         private readonly IOrderServiceClient orderFetcher;
         private readonly IOrderProcessor orderProcessor;
-        private readonly ILogger<OrderStatusProcessorService> log; // Add logger
+        private readonly ILogger<OrderStatusProcessorService> log;
 
         public OrderStatusProcessorService(IOrderServiceClient orderFetcher, IOrderProcessor orderProcessor, ILogger<OrderStatusProcessorService> logger)
         {
             this.orderFetcher = orderFetcher;
             this.orderProcessor = orderProcessor;
-            this.log = logger; // Initialize logger
+            this.log = logger;
         }
 
         public async Task ProcessOrders()
         {
-            var ordersData = await orderFetcher.FetchMedicalEquipmentOrders();
+            string? ordersData;
+
+            try
+            {
+                ordersData = await orderFetcher.FetchMedicalEquipmentOrders();
+            }
+            catch (Exception ex)
+            {
+                log.LogError(ex, "Failed to fetch orders data.");
+                return;
+            }
 
             if (ordersData != null)
             {
-                await orderProcessor.ProcessOrdersData(ordersData);
+                try
+                {
+                    await orderProcessor.ProcessOrdersData(ordersData);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, "Failed to process orders data.");
+                }
             }
             else
             {
-                log.LogError("No orders data to process."); // Use logger to log error
+                log.LogError("No orders data to process.");
             }
         }
     }

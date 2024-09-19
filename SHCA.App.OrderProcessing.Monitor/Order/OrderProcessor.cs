@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -23,11 +25,21 @@ namespace SHCA.App.OrderProcessing.Monitor.Process
 
         public async Task ProcessOrdersData(string ordersData)
         {
-            List<Order>? orders = JsonConvert.DeserializeObject<List<Order>>(ordersData);
+            List<Order>? orders;
+
+            try
+            {
+                orders = JsonConvert.DeserializeObject<List<Order>>(ordersData);
+            }
+            catch (JsonException ex)
+            {
+                log.LogError(ex, "Failed to deserialize orders data.");
+                return;
+            }
 
             if (orders == null)
             {
-                log.LogError("Failed to deserialize orders data.");
+                log.LogError("Orders data is null after deserialization.");
                 return;
             }
 
@@ -35,10 +47,17 @@ namespace SHCA.App.OrderProcessing.Monitor.Process
 
             foreach (var order in orders)
             {
-                var updatedOrder = await ProcessOrder(order);
-                if (updatedOrder != null)
+                try
                 {
-                    await orderUpdater.SendAlertAndUpdateOrder(updatedOrder);
+                    var updatedOrder = await ProcessOrder(order);
+                    if (updatedOrder != null)
+                    {
+                        await orderUpdater.SendAlertAndUpdateOrder(updatedOrder);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, $"Error processing order ID: {order.OrderId}");
                 }
             }
 
@@ -55,17 +74,24 @@ namespace SHCA.App.OrderProcessing.Monitor.Process
 
             foreach (var item in order.Items)
             {
-                if (await item.IsItemDelivered())
+                try
                 {
-                    if (order.OrderId.HasValue)
+                    if (await item.IsItemDelivered())
                     {
-                        await alertService.SendAlertMessage(item, order.OrderId.Value.ToString());
-                        await item.IncrementDeliveryNotification();
+                        if (order.OrderId.HasValue)
+                        {
+                            await alertService.SendAlertMessage(item, order.OrderId.Value.ToString());
+                            await item.IncrementDeliveryNotification();
+                        }
+                        else
+                        {
+                            log.LogWarning("Order ID is null for an order with delivered items.");
+                        }
                     }
-                    else
-                    {
-                        log.LogWarning("Order ID is null for an order with delivered items.");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, $"Error processing item in order ID: {order.OrderId}");
                 }
             }
 
