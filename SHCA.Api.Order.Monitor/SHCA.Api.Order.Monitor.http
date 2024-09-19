@@ -1,0 +1,6 @@
+@SHCA.Api.Order.Monitor_HostAddress = http://localhost:5210
+
+GET {{SHCA.Api.Order.Monitor_HostAddress}}/process-orders
+Accept: application/json
+
+###
