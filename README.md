@@ -1,33 +1,80 @@
 # SHCA - Code Assesment Supplementary Materials
 
 # Improvements and Fixes
-### Error Handling:
-- [x] Ensure proper error handling and logging for API calls and other operations.
-- [x] Fixes asynchronous and non- async mixed code
-- [x] Avoid using .GetAwaiter().GetResult() to prevent blocking the main thread.
-### HttpClient Usage:
-- [x] Use a single instance of HttpClient to avoid socket exhaustion.
-### Separation of Concerns:
-- [x] Refactor code to separate business logic, data access, and API calls. Each class has a single responsibility, making the code easier to understand and maintain.
-### Configuration Management:
-- [x] Use configuration files or environment variables for URLs and other settings.
-### Architecture Optimization
-- [x] Create repository pattern using DDD / Clean code standards.
-### Dependency Injection:
-- [x] Use dependency injection for better testability and maintainability.
-### Code Readability:
-- [x] Improve code readability with meaningful variable names and comments.
-### Performance Optimization:
-- [x] Optimize loops and data processing for better performance.
-### Security
-- [x] Included auth implementation and integration with stubbed Azure configuration assets.
-### Testability
-- [x] Mock tests covering both the data access and business logic calls. The modular design makes it easier to write unit tests for each component.
-### Scalability
-- [x] The architecture can be easily extended with additional services or functionality without affecting existing code.
+- **Error Handling:**
+  - Ensure proper error handling and logging for API calls and other operations.
+  - Fix asynchronous and non-async mixed code.
+  - Avoid using `.GetAwaiter().GetResult()` to prevent blocking the main thread.
+- **HttpClient Usage:**
+  - Use a single instance of `HttpClient` to avoid socket exhaustion.
+- **Separation of Concerns:**
+  - Refactor code to separate business logic, data access, and API calls. Each class has a single responsibility, making the code easier to understand and maintain.
+- **Configuration Management:**
+  - Use configuration files or environment variables for URLs and other settings.
+- **Architecture Optimization:**
+  - Create repository pattern using DDD / Clean code standards.
+- **Dependency Injection:**
+  - Use dependency injection for better testability and maintainability.
+- **Code Readability:**
+  - Improve code readability with meaningful variable names and comments.
+- **Performance Optimization:**
+  - Optimize loops and data processing for better performance.
+- **Security:**
+  - Include auth implementation and integration with stubbed Azure configuration assets.
+- **Testability:**
+  - Mock tests covering both the data access and business logic calls. The modular design makes it easier to write unit tests for each component.
+- **Scalability:**
+  - The architecture can be easily extended with additional services or functionality without affecting existing code.
 
+# Solution Setup Guide and Architecture Summary
 
-# Solution Architecture Summary
+## Setup and Run Guide
+
+### Prerequisites
+1. **Development Environment**:
+   - Visual Studio 2019 or later
+   - .NET Core SDK 3.1 or later
+
+2. **Azure Services**:
+   - Azure Active Directory (Azure AD) for authentication
+   - Azure Functions for running the scheduled tasks
+
+3. **External Dependencies**:
+   - Microsoft.Identity.Client (MSAL) for authentication
+   - Newtonsoft.Json for JSON serialization/deserialization
+   - Microsoft.Extensions.Logging for logging
+
+### Setup Steps
+
+1. **Clone the Repository**:
+   - Clone the repository containing the solution to your local machine.
+
+2. **Environment Variables**:
+   - Set the following environment variables in your Azure Function App settings - create local.settings.json file with the following code
+```
+    {
+      "IsEncrypted": false,
+      "Values": {
+          "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+          "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+          "AzureAd:Instance": "https://login.microsoftonline.com/",
+          "AzureAd:ClientId": "client-id-from-Azure-config-not-local",
+          "AzureAd:TenantId": "tenant-id-from-Azure-config-not-local",
+          "AzureAd:ClientSecret": "client-secret-from-Azure-config-not-local"
+    }
+  }
+```
+
+3. **Install Dependencies**:
+   - Open the solution in Visual Studio.
+   - Restore NuGet packages to ensure all dependencies are installed:
+     
+	  ```dotnet restore```
+
+4. **Build the Solution**:
+   - Build the solution to ensure there are no compilation errors:
+
+	  ```dotnet build```
 
 ## Architecture Overview
 The solution is designed with a modular architecture to separate concerns, improve maintainability, and enhance scalability. The main components include Azure Functions, a service layer, and a shared HttpClient instance.
@@ -151,6 +198,5 @@ The solution is designed with a modular architecture to separate concerns, impro
 - **OrderItem**: Represents an order item entity.
 - **OrderRepository**: Handles data access for orders.
 - **HttpClient**: A shared instance used by various services for making API calls.
-
-This architecture ensures that the solution is robust, maintainable, and scalable, with clear separation of concerns and reusable components.
-
+   
+     
